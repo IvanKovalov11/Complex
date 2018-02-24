@@ -1,12 +1,17 @@
-class complex_t
+#include <iostream>
+#include <sstream>
+
+ struct complex_t
 {	
-public:
+	float real;
+	float imag;
+
 	complex_t()
 	{
 		real = 0.0f;
 		imag = 0.0f;
-		++count;
 	}
+
 	complex_t add(complex_t other) const //complex_t const * const
 	{
 		complex_t result;
@@ -15,36 +20,108 @@ public:
 		return result;
 	}
 
-	std::ostream & output(std::ostream & stream) const // complex_t * const
+	complex_t sub(complex_t other) const //complex_t const * const
+	{
+		complex_t result;
+		result.real = this->real - other.real;
+		result.imag = this->imag - other.imag;
+		return result;
+	}
+
+	complex_t mul(complex_t other) const //complex_t const * const
+	{
+		complex_t result;
+		result.real = this->real*other.real - this->imag*other.imag;
+		result.imag = this->imag*other.real - this->real*other.imag;
+		return result;
+	}
+
+	complex_t div(complex_t other) const //complex_t const * const
+	{
+		complex_t result;
+		result.real = (this->real*other.real - this->imag*other.imag) / (other.real*other.real + other.imag*other.imag);
+		result.imag = (this->imag*other.real - this->real*other.imag) / (other.real*other.real + other.imag*other.imag);
+		return result;
+	}
+
+	std::istream & read(std::istream & stream) //const // complex_t * const
+	{
+		char symbol;
+		float real;
+		float imag;
+
+		if (stream >> symbol && symbol == '(' &&
+			stream >> real &&
+			stream >> symbol && symbol == ',' &&
+			stream >> imag &&
+			stream >> symbol && symbol == ')')
+		{
+
+			this->real = real;
+			this->imag = imag;
+
+		}
+		else
+		{
+			stream.setstate(std::ios::failbit);
+		}
+
+		return stream;
+	}	
+
+	std::ostream & write(std::ostream & stream) const // complex_t * const
 	{
 		return stream << '(' << real << ", " << imag << ')';
 	}
-	~complex_t()
-	{
-
-	}
-	static unsigned int count;
-	void set_real(float value)
-	{
-		if (value > 0.0f)
-		{
-			real = value;
-		}		
-	}
-private:
-	float real;
-	float imag;
 };
 
-unsigned int complex_t::count = 0;
+ int main()
+ {
+	 std::string input;
+	 getline(std::cin, input);
+	 std::istringstream stream(input);
+	 complex_t complex1;
+	 complex_t complex2;
+	 char op;
 
-int main()
-{
-	complex_t complex1;
-	complex_t complex2;
-	complex_t result = complex1.add(complex2);
-	result.output(std::cout);
-	std::cout << complex_t::count;
-	complex1.set_real(0.0f);
-    return 0;
-}
+	 if (complex1.read(stream) &&
+		 stream >> op && (op == '+' || op == '-' || op == '*' || op == '/') &&
+		 complex2.read(stream))
+	 {
+		 switch (op)
+		 {
+		 case '+':
+		 {
+			 auto result = complex1.add(complex2);
+			 result.write(std::cout);
+		     break;
+		 }
+		 case '-':
+		 {
+			 auto result = complex1.sub(complex2);
+			 result.write(std::cout);
+			 break;
+		 }
+		 case '*':
+		 {
+			 auto result = complex1.mul(complex2);
+			 result.write(std::cout);
+			 break;
+		 }
+		 case '/':
+		 {
+			 auto result = complex1.div(complex2);
+			 result.write(std::cout);
+			 break;
+		 }
+		 }
+	 }
+	 else
+	 {
+		 std::cout << "An error has occured while reading input data";
+		 return 1;
+	 }
+
+	 std::cin.get();
+	 return 0;
+ }
